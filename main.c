@@ -286,7 +286,7 @@ int main()
 	printf("MESSAGE: \n");
 	print_table(s_table, TAB_SIZE, 4);
 
-	unsigned char k_table[11][TAB_SIZE] = {{0},{0}};
+	unsigned char k_table[11][TAB_SIZE]; 
 	unsigned char * k_ptr_i[11];
 
 	for(int i = 0; i < 11; i++)
