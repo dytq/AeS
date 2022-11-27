@@ -3,21 +3,23 @@
 #define SIZE_AES 128
 #define TAB_SIZE (SIZE_AES/8)
 
+#define MULT_3(X) ((X << 1) ^ X)
+#define MULT_2(X) (X << 1)
 
 unsigned char MESSAGE[TAB_SIZE] = 
 { 
-	0x1A, 0x25, 0xDC, 0x8B,
-	0x18, 0x78, 0x19, 0x56,
-	0x6B, 0xD2, 0xB1, 0x17,
-	0xDB, 0x2F, 0XC4, 0xBD
+	0x32, 0x88, 0x31, 0xe0,
+	0x43, 0x5A, 0x31, 0x37,
+	0xF6, 0x30, 0x98, 0x07,
+	0xA8, 0x8D, 0XA2, 0x34
 };
 
 unsigned char K_0[TAB_SIZE] = 
 {
-	0x81, 0xEB, 0x5A, 0x28,
-	0x39, 0x17, 0x18, 0xB0,
-	0xD2, 0x44, 0xFF, 0x69,
-	0xCD, 0X13, 0x15, 0xFD
+	0x2B, 0x28, 0xAB, 0x09,
+	0x7E, 0xAE, 0xF7, 0xCF,
+	0x15, 0xD2, 0x15, 0x4F,
+	0x16, 0XA6, 0x88, 0x3C
 };
 
 // nist specification 
@@ -62,7 +64,7 @@ unsigned int COLUMN[4][4] =
 // shift row 
 int SHIFT_PERMUTATION_TABLE_8_OCT[TAB_SIZE] = 
 {
-	0, 1, 2, 3, 5, 6, 7, 4, 10, 11, 8, 9, 15, 14, 13, 12
+	0, 1, 2, 3, 5, 6, 7, 4, 10, 11, 8, 9, 15, 12, 13, 14
 };
 
 // Signatures
@@ -109,7 +111,7 @@ unsigned char * xor_key(unsigned char * s_table, unsigned char * k)
 {
 	for(int i = 0; i < TAB_SIZE; i++)
 	{
-		s_table[i] = s_table[i] ^ K_0[i];
+		s_table[i] = s_table[i] ^ k[i];
 	}
 	return s_table;
 }
@@ -162,7 +164,17 @@ unsigned char * mix_column(unsigned char * s_table)
 			short tmp_value = 0;
 			for(int k = 0; k < 4; k++)
 			{
-				tmp_value ^= naif_division_euclidienne(MIX_COLUM_8_OCT[j][k] * s_table[COLUMN[i][k]], 0x11B);
+				short tmp = s_table[COLUMN[i][k]];
+
+				if(MIX_COLUM_8_OCT[j][k] == 2) 
+				{
+					tmp = MULT_2(tmp);	
+				}
+				if(MIX_COLUM_8_OCT[j][k] == 3)
+				{
+					tmp = MULT_3(tmp);
+				}
+				tmp_value ^= naif_division_euclidienne(tmp, 0x11B);
 			}
 			tmp_value = naif_division_euclidienne(tmp_value, 0X11B);
 			tmp_tab[COLUMN[i][j]] = tmp_value;
@@ -200,11 +212,16 @@ int main()
 	{
 		for(int j = 0; j < TAB_SIZE/4; j++)
 		{
-			printf("%X ", s_table[index_tab]);
+			if(s_table[index_tab] < 0x0F)
+			{
+				printf("0%X ", s_table[index_tab]);
+			}
+			else {
+				printf("%X ", s_table[index_tab]);
+			}
 			index_tab++;
 		}
 		printf("\n");
 	}
-	
 	return 0;
 }
